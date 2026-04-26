@@ -1,0 +1,77 @@
+# Development Compose: Backend services and DB are containerized, Frontend runs locally.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: microstore-db-dev
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Expose DB port for local management tools in development.
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    # Healthcheck ensures DB is ready before backend services attempt to connect.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microstore-dev-net
+
+  auth-service:
+    build: ./services/auth
+    container_name: auth-service-dev
+    ports:
+      - "${AUTH_DEV_PORT}:${PORT}"
+    env_file: .env
+    volumes:
+      - ./services/auth/src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/auth_db
+      - PORT=${PORT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microstore-dev-net
+
+  product-service:
+    build: ./services/product
+    container_name: product-service-dev
+    ports:
+      - "${PRODUCT_DEV_PORT}:${PORT}"
+    env_file: .env
+    volumes:
+      - ./services/product/src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/product_db
+      - PORT=${PORT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microstore-dev-net
+
+  order-service:
+    build: ./services/order
+    container_name: order-service-dev
+    ports:
+      - "${ORDER_DEV_PORT}:${PORT}"
+    env_file: .env
+    volumes:
+      - ./services/order/src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/order_db
+      - PRODUCT_SERVICE_URL=http://product-service:${PORT}
+      - PORT=${PORT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microstore-dev-net
+
+networks:
+  microstore-dev-net:
+    driver: bridge
