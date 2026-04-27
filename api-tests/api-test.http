@@ -1,0 +1,68 @@
+### MicroStore API Testing (Development Mode)
+### Use VS Code REST Client or IntelliJ HTTP Client to run these requests directly.
+### Ensure the backend is running via `docker compose -f compose.dev.yml up -d`
+
+@authUrl = http://localhost:3001
+@productUrl = http://localhost:3002
+@orderUrl = http://localhost:3003
+
+# ---------------------------------------------------------
+# 1. AUTHENTICATION SERVICE (Port 3001)
+# ---------------------------------------------------------
+
+### Register a new user
+# @name register
+POST {{authUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Login to get JWT Token
+# @name login
+POST {{authUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Store the token from the login response to use in protected routes
+@token = {{login.response.body.data.token}}
+
+# ---------------------------------------------------------
+# 2. PRODUCT SERVICE (Port 3002)
+# ---------------------------------------------------------
+
+### Get all products
+GET {{productUrl}}/products
+
+### Get a specific product (Replace ID with a real ID from the previous request)
+@productId = a52df030-cf8a-40a8-b648-525d8f6385cf
+GET {{productUrl}}/products/{{productId}}
+
+# ---------------------------------------------------------
+# 3. ORDER SERVICE (Port 3003)
+# ---------------------------------------------------------
+
+### Place an order (Requires valid product ID and Token)
+POST {{orderUrl}}/orders
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    {
+      "productId": "{{productId}}",
+      "quantity": 1
+    }
+  ]
+}
+
+### Get user's order history
+GET {{orderUrl}}/orders
+Authorization: Bearer {{token}}

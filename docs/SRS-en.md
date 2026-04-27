@@ -458,6 +458,11 @@ microstore/
 3. **Database Seeding**
    - The `db/init.sql` script populates the product table with sample data (e.g., 5 products) when the PostgreSQL container is created for the first time.
 
+4. **Direct API Testing**
+   - The `api-tests/` folder contains testing files (`api-test.http` and a Postman collection JSON).
+   - When running in Development Mode (`compose.dev.yml`), these files can be used to test the APIs directly, bypassing the Next.js BFF.
+   - **Exposed Host Ports**: Auth (`3001`), Product (`3002`), Order (`3003`).
+
 ### 7.3 CI/CD Pipeline (GitHub Actions)
 
 A simple GitHub Actions workflow (`.github/workflows/ci.yml`) ensures code quality and basic integration:

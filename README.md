@@ -126,7 +126,28 @@ Follow this user journey to verify the full microservices integration:
     - Navigate to the **Security** page.
     - Update your password and verify that the change is persisted by logging out and back in.
 
-## Data Flow for Order Placement
+## 💻 Direct API Testing (Without Frontend)
+
+If you want to understand the backend flow or test endpoints directly, you can use the files located in the `api-tests/` directory.
+
+1.  Ensure you are running in **Development Mode** (`docker compose -f compose.dev.yml up -d`).
+2.  The backend services will be exposed on your local machine:
+    - **Auth**: `http://localhost:3001`
+    - **Product**: `http://localhost:3002`
+    - **Order**: `http://localhost:3003`
+
+### Option A: Using VS Code REST Client
+1. Open the `api-tests/api-test.http` file in VS Code (requires the [REST Client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client)) or IntelliJ IDEA.
+2. Execute the requests sequentially by clicking the **Send Request** button above each endpoint.
+   *(Note: The token variable is handled for you, but you'll need to manually paste a product ID when needed).*
+
+### Option B: Using Postman
+1. Open Postman and click **Import**.
+2. Select the `api-tests/microstore-postman-collection.json` file.
+3. Use the **MicroStore Local APIs** collection. 
+   *(Note: The collection contains a script in the Login request that automatically saves the JWT token for subsequent requests).*
+
+## 🔄 Data Flow for Order Placement
 
 1.  **Frontend/BFF** initiates `POST /orders` to the **Order Service**.
 2.  **Order Service** calls **Product Service** (`GET /internal/products/:id`) for each item to verify existence and stock availability.
